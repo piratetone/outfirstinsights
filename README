@@ -3,31 +3,9 @@ Running
 
 You can run your starter application with:
 
-  python sample.py
+  python analytics.py
 
-Please read sample.py carefully, it contains detailed information
-in the comments.
-
-Installation
+Discussion Points
 ============
 
-The full source for the google-api-python-client library is included
-in this starter application, but the library has not been installed on your
-system. That means that this sample will run from within the unzipped
-directory, but from nowhere else.
-
-The easiest way to install the client library into your system is by running easy_install:
-
-  easy_install --upgrade google-api-python-client
-
-You might need to add a 'sudo' to the beginning of that command depending on your platform.
-If you don't have easy_install you can get it by installing the setuptools package.
-
-
-Documentation
-=============
-
-The documentation for the google-api-python-client library is avialable here:
-
-   https://developers.google.com/api-client-library/python/start/get_started
-
+How are the accounts setup for each client's Google Analytics?  Does each client have a separate Analytics account?  If so, must look at automation of account setup.  How to custom generate client_secrets.json?

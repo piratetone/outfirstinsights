@@ -139,7 +139,16 @@ def get_info(service, profile_id):
 
 def days_from_today(days=0):
   """
-  Output is formatted to work with Google API.
+  Returns the number of days in the past from today.  If input is omitted or at
+  0, then it returns today.
+
+  Args:
+    days: Optional integer of number of days in the past you want the return date
+
+
+  Returns:
+    Isoformatted date, which can be fed directly into the start_date/end_date 
+    params for the Google API.
   """
   today = date.today()
   if (days >= 0):
