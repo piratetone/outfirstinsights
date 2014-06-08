@@ -7,15 +7,19 @@
 
 
 """
-ToDo:
+Todo:
 
 -Setup multiple account/site management (refactor 'get_first_profile_id')
--Build output system that renders utilizing HTML templates
+-Build output system that renders utilizing HTML templates (Jinja)
 -Have a discussion with Gary about what analytics/metrics he thinks are most important.
+-Automatically calculate weekly date differences to query Google.
 
 Sample Usage:
 
   $ python analytics.py
+
+  Currently this uses pdb.set_trace() to boot up the interpreter right after 
+  results have been returned to `results`
 
 """
 
@@ -28,6 +32,9 @@ import pdb
 from apiclient.errors import HttpError
 from apiclient import sample_tools
 from oauth2client.client import AccessTokenRefreshError
+
+from datetime import date
+from datetime import timedelta
 
 
 def main(argv):
@@ -129,6 +136,23 @@ def get_info(service, profile_id):
     metrics='ga:sessions, ga:sessionDuration',
     start_index='1',
     max_results='25').execute()
+
+def days_from_today(days=0):
+  """
+  Output is formatted to work with Google API.
+  """
+  today = date.today()
+  if (days >= 0):
+    days_delta = timedelta(days=days)
+    days_in_past = today - days_delta
+    return days_in_past.isoformat()
+  elif (days < 0):
+    print("Make sure the input is >= 0")
+    return False
+
+
+
+
 
 def print_results(results):
   """Prints out the results.
