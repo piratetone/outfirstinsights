@@ -1,11 +1,11 @@
+Installation
+============
+
+The only two requirements not contained in this repository are Python 2.7 and VirtualEnv. The virtual environment contains all the necessary packages for the Python file.  To load the virtualenv, in the Mac terminal type `source outfirst/bin/activate`  (note: you may have to install virtualenv first, it's been so long since I've done that I've forgotten). For Mac, Python comes preinstalled.
+
 Running
 =======
 
-You can run your starter application with:
+This program is still actively in development.  When run, it will eject the user into the terminal (via pdb.set_trace()) after the data has been loaded for the default account.
 
   python analytics.py
-
-Discussion Points
-============
-
-How are the accounts setup for each client's Google Analytics?  Does each client have a separate Analytics account?  If so, must look at automation of account setup.  How to custom generate client_secrets.json?
