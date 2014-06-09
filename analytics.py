@@ -36,164 +36,173 @@ from oauth2client.client import AccessTokenRefreshError
 from datetime import date
 from datetime import timedelta
 
+class AnalyticsWrapper:
+  """
+  TODO: Expand so it can iterate over clients + add methods for different lookups.
 
-def main(argv):
-  # Authenticate and construct service.
-  service, flags = sample_tools.init(
-      argv, 'analytics', 'v3', __doc__, __file__,
-      scope='https://www.googleapis.com/auth/analytics.readonly')
-
-  # Try to make a request to the API. Print the results or handle errors.
-  try:
-    first_profile_id = get_first_profile_id(service)
-    if not first_profile_id:
-      print 'Could not find a valid profile for this user.'
-    else:
-      # results = get_top_keywords(service, first_profile_id)
-      results = get_info_until_today(service, first_profile_id, 30)
-      print_results(results)
-      pdb.set_trace()
-
-  except TypeError, error:
-    # Handle errors in constructing a query.
-    print ('There was an error in constructing your query : %s' % error)
-
-  except HttpError, error:
-    # Handle API errors.
-    print ('Arg, there was an API error : %s : %s' %
-           (error.resp.status, error._get_reason()))
-
-  except AccessTokenRefreshError:
-    # Handle Auth errors.
-    print ('The credentials have been revoked or expired, please re-run '
-           'the application to re-authorize')
-
-
-def get_first_profile_id(service):
-  """Traverses Management API to return the first profile id.
-
-  This first queries the Accounts collection to get the first account ID.
-  This ID is used to query the Webproperties collection to retrieve the first
-  webproperty ID. And both account and webproperty IDs are used to query the
-  Profile collection to get the first profile id.
-
-  Args:
-    service: The service object built by the Google API Python client library.
-
-  Returns:
-    A string with the first profile ID. None if a user does not have any
-    accounts, webproperties, or profiles.
   """
 
-  accounts = service.management().accounts().list().execute()
+  def main(self, argv):
+    # Authenticate and construct service.
+    service, flags = sample_tools.init(
+        argv, 'analytics', 'v3', __doc__, __file__,
+        scope='https://www.googleapis.com/auth/analytics.readonly')
 
-  if accounts.get('items'):
-    firstAccountId = accounts.get('items')[0].get('id')
-    webproperties = service.management().webproperties().list(
-        accountId=firstAccountId).execute()
+    # Try to make a request to the API. Print the results or handle errors.
+    try:
+      first_profile_id = self.get_first_profile_id(service)
+      if not first_profile_id:
+        print 'Could not find a valid profile for this user.'
+      else:
+        # results = get_top_keywords(service, first_profile_id)
+        results = self.get_info_until_today(service, first_profile_id, 30)
+        self.print_results(results)
+        pdb.set_trace()
 
-    if webproperties.get('items'):
-      firstWebpropertyId = webproperties.get('items')[0].get('id')
-      profiles = service.management().profiles().list(
-          accountId=firstAccountId,
-          webPropertyId=firstWebpropertyId).execute()
+    except TypeError, error:
+      # Handle errors in constructing a query.
+      print ('There was an error in constructing your query : %s' % error)
 
-      if profiles.get('items'):
-        return profiles.get('items')[0].get('id')
+    except HttpError, error:
+      # Handle API errors.
+      print ('Arg, there was an API error : %s : %s' %
+             (error.resp.status, error._get_reason()))
 
-  return None
+    except AccessTokenRefreshError:
+      # Handle Auth errors.
+      print ('The credentials have been revoked or expired, please re-run '
+             'the application to re-authorize')
 
-def get_top_keywords(service, profile_id):
-  """Executes and returns data from the Core Reporting API.
 
-  This queries the API for the top 25 organic search terms by visits.
+  def get_first_profile_id(self, service):
+    """Traverses Management API to return the first profile id.
 
-  Args:
-    service: The service object built by the Google API Python client library.
-    profile_id: String The profile ID from which to retrieve analytics data.
+    This first queries the Accounts collection to get the first account ID.
+    This ID is used to query the Webproperties collection to retrieve the first
+    webproperty ID. And both account and webproperty IDs are used to query the
+    Profile collection to get the first profile id.
 
-  Returns:
-    The response returned from the Core Reporting API.
-  """
+    Args:
+      service: The service object built by the Google API Python client library.
 
-  return service.data().ga().get(
+    Returns:
+      A string with the first profile ID. None if a user does not have any
+      accounts, webproperties, or profiles.
+    """
+
+    accounts = service.management().accounts().list().execute()
+
+    if accounts.get('items'):
+      firstAccountId = accounts.get('items')[0].get('id')
+      webproperties = service.management().webproperties().list(
+          accountId=firstAccountId).execute()
+
+      if webproperties.get('items'):
+        firstWebpropertyId = webproperties.get('items')[0].get('id')
+        profiles = service.management().profiles().list(
+            accountId=firstAccountId,
+            webPropertyId=firstWebpropertyId).execute()
+
+        if profiles.get('items'):
+          return profiles.get('items')[0].get('id')
+
+    return None
+
+  def get_top_keywords(self, service, profile_id):
+    """Executes and returns data from the Core Reporting API.
+
+    This queries the API for the top 25 organic search terms by visits.
+
+    Args:
+      service: The service object built by the Google API Python client library.
+      profile_id: String The profile ID from which to retrieve analytics data.
+
+    Returns:
+      The response returned from the Core Reporting API.
+    """
+
+    return service.data().ga().get(
+        ids='ga:' + profile_id,
+        start_date='2014-04-01',
+        end_date='2014-06-15',
+        metrics='ga:visits',
+        dimensions='ga:source,ga:keyword',
+        sort='-ga:visits',
+        filters='ga:medium==organic',
+        start_index='1',
+        max_results='25').execute()
+
+  def get_info_until_today(self, service, profile_id, days):
+    return service.data().ga().get(
       ids='ga:' + profile_id,
-      start_date='2014-04-01',
-      end_date='2014-06-15',
-      metrics='ga:visits',
-      dimensions='ga:source,ga:keyword',
-      sort='-ga:visits',
-      filters='ga:medium==organic',
+      start_date=self.days_from_today(days),
+      end_date=self.days_from_today(0),
+      dimensions='ga:userType',
+      metrics='ga:sessions, ga:sessionDuration',
       start_index='1',
       max_results='25').execute()
 
-def get_info_until_today(service, profile_id, days):
-  return service.data().ga().get(
-    ids='ga:' + profile_id,
-    start_date=days_from_today(days),
-    end_date=days_from_today(0),
-    dimensions='ga:userType',
-    metrics='ga:sessions, ga:sessionDuration',
-    start_index='1',
-    max_results='25').execute()
+  def days_from_today(self, days=0):
+    """
+    Returns the number of days in the past from today.  If input is omitted or at
+    0, then it returns today.
 
-def days_from_today(days=0):
-  """
-  Returns the number of days in the past from today.  If input is omitted or at
-  0, then it returns today.
-
-  Args:
-    days: Optional integer of number of days in the past you want the return date
+    Args:
+      days: Optional integer of number of days in the past you want the return date
 
 
-  Returns:
-    Isoformatted date, which can be fed directly into the start_date/end_date 
-    params for the Google API.
-  """
-  today = date.today()
-  if (days >= 0):
-    days_delta = timedelta(days=days)
-    days_in_past = today - days_delta
-    return days_in_past.isoformat()
-  elif (days < 0):
-    print("Make sure the input is >= 0")
-    return False
+    Returns:
+      Isoformatted date, which can be fed directly into the start_date/end_date 
+      params for the Google API.
+    """
+    today = date.today()
+    if (days >= 0):
+      days_delta = timedelta(days=days)
+      days_in_past = today - days_delta
+      return days_in_past.isoformat()
+    elif (days < 0):
+      print("Make sure the input is >= 0")
+      return False
+
+  def organize_results(self, results):
+    """
+    Returns the results in a dictionary (or list?)
+    """
 
 
 
+  def print_results(self, results):
+    """Prints out the results.
 
+    This prints out the profile name, the column headers, and all the rows of
+    data.
 
-def print_results(results):
-  """Prints out the results.
+    Args:
+      results: The response returned from the Core Reporting API.
+    """
 
-  This prints out the profile name, the column headers, and all the rows of
-  data.
+    print
+    print 'Profile Name: %s' % results.get('profileInfo').get('profileName')
+    print
 
-  Args:
-    results: The response returned from the Core Reporting API.
-  """
+    # Print header.
+    output = []
+    for header in results.get('columnHeaders'):
+      output.append('%30s' % header.get('name'))
+    print ''.join(output)
 
-  print
-  print 'Profile Name: %s' % results.get('profileInfo').get('profileName')
-  print
+    # Print data table.
+    if results.get('rows', []):
+      for row in results.get('rows'):
+        output = []
+        for cell in row:
+          output.append('%30s' % cell)
+        print ''.join(output)
 
-  # Print header.
-  output = []
-  for header in results.get('columnHeaders'):
-    output.append('%30s' % header.get('name'))
-  print ''.join(output)
-
-  # Print data table.
-  if results.get('rows', []):
-    for row in results.get('rows'):
-      output = []
-      for cell in row:
-        output.append('%30s' % cell)
-      print ''.join(output)
-
-  else:
-    print 'No Rows Found'
+    else:
+      print 'No Rows Found'
 
 
 if __name__ == '__main__':
-  main(sys.argv)
+  api = AnalyticsWrapper()
+  api.main(sys.argv)
