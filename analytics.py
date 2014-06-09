@@ -50,7 +50,7 @@ def main(argv):
       print 'Could not find a valid profile for this user.'
     else:
       # results = get_top_keywords(service, first_profile_id)
-      results = get_info(service, first_profile_id)
+      results = get_info_until_today(service, first_profile_id, 30)
       print_results(results)
       pdb.set_trace()
 
@@ -127,11 +127,11 @@ def get_top_keywords(service, profile_id):
       start_index='1',
       max_results='25').execute()
 
-def get_info(service, profile_id):
+def get_info_until_today(service, profile_id, days):
   return service.data().ga().get(
     ids='ga:' + profile_id,
-    start_date='2012-01-01',
-    end_date='2014-06-15',
+    start_date=days_from_today(days),
+    end_date=days_from_today(0),
     dimensions='ga:userType',
     metrics='ga:sessions, ga:sessionDuration',
     start_index='1',
