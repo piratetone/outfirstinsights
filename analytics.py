@@ -60,8 +60,8 @@ class AnalyticsWrapper:
         # results = get_top_keywords(service, first_profile_id)
         results = self.get_info_until_today(service, first_profile_id, 30)
         self.print_results(results)
-        pdb.set_trace()
         self.render_template(self.organize_results(results))
+        pdb.set_trace()
         
 
     except TypeError, error:
@@ -184,10 +184,16 @@ class AnalyticsWrapper:
     output = {}
     output['headers'] = []
 
-    for item in results['columnHeaders']:
-      output['headers'].append(item['name'])
+    try:
 
-    return output
+      for item in results['columnHeaders']:
+        output['headers'].append(item['name'])
+
+      return output
+
+    except Exception as e:
+      print type(e)
+      print e
 
   def print_results(self, results):
     """Prints out the results.
@@ -219,9 +225,6 @@ class AnalyticsWrapper:
 
     else:
       print 'No Rows Found'
-
-
-
 
   #TODO:  The functions below are to be separated out into a separate class!  
   #Design without access to instance+class variables
