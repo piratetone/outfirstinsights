@@ -3,6 +3,12 @@ Installation
 
 The only two requirements not contained in this repository are Python 2.7 and VirtualEnv. The virtual environment contains all the necessary packages for the Python file.  To load the virtualenv, in the Mac terminal type `source outfirst/bin/activate`  (note: you may have to install virtualenv first, it's been so long since I've done that I've forgotten). For Mac, Python comes preinstalled.
 
+Additionally, the python application must authenticate with Google's webserver.  This is a rather complicated process, which involves enabling the Google Analytics account to have API access via the 'Google Console'.  (Aside: I believe, but am not certain, that it is possible to automate this process later.)  What is necessary for the app to run is there to be a client_secrets.json file in the same folder as analytics.py.
+
+Some info:  https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
+
+https://code.google.com/p/google-apps-manager/wiki/CreatingClientSecretsFile
+
 Running
 =======
 
