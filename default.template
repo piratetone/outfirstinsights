@@ -3,34 +3,28 @@
 <head>
   <meta charset="UTF-8" />
 
-  <title>{{ title }}</title>
-  <meta name="description" content="{{ description }}" />
+  <title>{{ title }}</title>  <!-- Do emails use <title>? -->
 </head>
 
 <body>
 
 <div id="content">
-  <p>This is the work-in-progress template to render for email</p>
+    <h1>Outfirst Insights</h1>
+    <p>This is the work-in-progress template to render for email</p>
 
     <table>
         <tr>
-        {% for header in table.headers %}
+        {% for header in headers %}
         <th>{{ header }}</th>{% endfor %}
         </tr>
-<!--     {% for row in table %}
+    {% for row in rows %}
         <tr>
         {% for cell in row %}
             <td>{{cell}}</td>
         {% endfor %}
         </tr>
-        {% endfor %} -->
+        {% endfor %}
     </table>
-
-  <ul>
-  {% for item in favorites %}
-    <li>{{ item }}</li>
-  {% endfor %}
-  </ul>
 </div>
 
 </body>

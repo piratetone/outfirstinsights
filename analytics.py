@@ -183,11 +183,16 @@ class AnalyticsWrapper:
     """
     output = {}
     output['headers'] = []
+    output['rows'] = []
 
     try:
 
       for item in results['columnHeaders']:
         output['headers'].append(item['name'])
+
+      for row in results['rows']:
+        output['rows'].append(row)
+
 
       return output
 
@@ -227,7 +232,7 @@ class AnalyticsWrapper:
       print 'No Rows Found'
 
   #TODO:  The functions below are to be separated out into a separate class!  
-  #Design without access to instance+class variables
+  #Design without access to instance+class variables!
 
   def render_template(self, template_data):
     '''
@@ -240,11 +245,10 @@ class AnalyticsWrapper:
     TEMPLATE_FILE = "default.template"
     template = templateEnv.get_template( TEMPLATE_FILE )
 
-    FAVORITES = [ "chocolates", "lunar eclipses", "rabbits" ]
-    templateVars = { "title" : "Test Example",
-                 "description" : "A simple inquiry of function.",
-                 "favorites" : FAVORITES,
-                 "table" : template_data
+    templateVars = { "title" : "Outfirst Insights",
+                 "table" : template_data,
+                 "headers" : template_data.get('headers'),
+                 "rows" : template_data.get('rows')
                }
 
     outputText = template.render( templateVars )
