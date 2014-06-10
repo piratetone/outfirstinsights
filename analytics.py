@@ -61,6 +61,8 @@ class AnalyticsWrapper:
         results = self.get_info_until_today(service, first_profile_id, 30)
         self.print_results(results)
         pdb.set_trace()
+        self.render_template(self.organize_results(results))
+        
 
     except TypeError, error:
       # Handle errors in constructing a query.
@@ -179,8 +181,13 @@ class AnalyticsWrapper:
 
     Still in dev.
     """
+    output = {}
+    output['headers'] = []
 
-    return False
+    for item in results['columnHeaders']:
+      output['headers'].append(item['name'])
+
+    return output
 
   def print_results(self, results):
     """Prints out the results.
@@ -214,10 +221,12 @@ class AnalyticsWrapper:
       print 'No Rows Found'
 
 
+
+
   #TODO:  The functions below are to be separated out into a separate class!  
   #Design without access to instance+class variables
 
-  def render_template(self):
+  def render_template(self, template_data):
     '''
     Renders to HTML template. The input must be organized first through organize_results().
 
@@ -231,7 +240,8 @@ class AnalyticsWrapper:
     FAVORITES = [ "chocolates", "lunar eclipses", "rabbits" ]
     templateVars = { "title" : "Test Example",
                  "description" : "A simple inquiry of function.",
-                 "favorites" : FAVORITES
+                 "favorites" : FAVORITES,
+                 "table" : template_data
                }
 
     outputText = template.render( templateVars )

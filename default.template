@@ -10,7 +10,21 @@
 <body>
 
 <div id="content">
-  <p>Greetings visitor!  These are a list of my favorite things:</p>
+  <p>This is the work-in-progress template to render for email</p>
+
+    <table>
+        <tr>
+        {% for header in table.headers %}
+        <th>{{ header }}</th>{% endfor %}
+        </tr>
+<!--     {% for row in table %}
+        <tr>
+        {% for cell in row %}
+            <td>{{cell}}</td>
+        {% endfor %}
+        </tr>
+        {% endfor %} -->
+    </table>
 
   <ul>
   {% for item in favorites %}
