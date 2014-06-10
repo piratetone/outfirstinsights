@@ -13,6 +13,8 @@ Todo:
 -Build output system that renders utilizing HTML templates (Jinja)
 -Have a discussion with Gary about what analytics/metrics he thinks are most important.
 -Automatically calculate weekly date differences to query Google.
+-Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
+
 
 Sample Usage:
 
@@ -28,6 +30,7 @@ __author__ = 'arcoard@gmail.com (Adam Coard)'
 import argparse
 import sys
 import pdb
+import jinja2
 
 from apiclient.errors import HttpError
 from apiclient import sample_tools
@@ -133,6 +136,10 @@ class AnalyticsWrapper:
         max_results='25').execute()
 
   def get_info_until_today(self, service, profile_id, days):
+    """
+    TODO: Expand so that it does more than just look up sessions/sessionDuration for userType.
+    """
+
     return service.data().ga().get(
       ids='ga:' + profile_id,
       start_date=self.days_from_today(days),
@@ -167,9 +174,13 @@ class AnalyticsWrapper:
   def organize_results(self, results):
     """
     Returns the results in a dictionary (or list?)
+
+    Make sure to return a new object which is sorted - do not sort the original results.
+
+    Still in dev.
     """
 
-
+    return False
 
   def print_results(self, results):
     """Prints out the results.
@@ -201,6 +212,44 @@ class AnalyticsWrapper:
 
     else:
       print 'No Rows Found'
+
+
+  #TODO:  The functions below are to be separated out into a separate class!  
+  #Design without access to instance+class variables
+
+  def render_template(self):
+    '''
+    Renders to HTML template. The input must be organized first through organize_results().
+
+    Still in dev.
+    '''
+    templateLoader = jinja2.FileSystemLoader( searchpath="./" )
+    templateEnv = jinja2.Environment( loader=templateLoader )
+    TEMPLATE_FILE = "default.template"
+    template = templateEnv.get_template( TEMPLATE_FILE )
+
+    FAVORITES = [ "chocolates", "lunar eclipses", "rabbits" ]
+    templateVars = { "title" : "Test Example",
+                 "description" : "A simple inquiry of function.",
+                 "favorites" : FAVORITES
+               }
+
+    outputText = template.render( templateVars )
+
+    self.write_to_file(outputText, 'temp.html')
+    
+    return outputText
+
+  def write_to_file(self, content, output_file_name):
+    """
+    In dev. 
+    """
+    try:
+      output = open(output_file_name, 'w')
+      output.write(content)
+      output.close()
+    except Error, e:
+      print "Exception: " + e
 
 
 if __name__ == '__main__':
