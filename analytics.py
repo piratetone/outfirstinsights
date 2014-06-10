@@ -10,10 +10,16 @@
 Todo:
 
 -Setup multiple account/site management (refactor 'get_first_profile_id')
--Build output system that renders utilizing HTML templates (Jinja)
 -Have a discussion with Gary about what analytics/metrics he thinks are most important.
--Automatically calculate weekly date differences to query Google.
 -Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
+-Add ability for template rendering to be able to be fed numerous tables.
+-->A for-loop over a list containing template_data objects fed into the fn.
+
+DONE:
+-Build output system that renders utilizing HTML templates (Jinja)
+-Automatically calculate variable date differences to query Google.
+-Add ease-of-use methods to do basic calls like "pageviews by week" and such
+---> Abstract away from excessie param use by having methods like "get_weekly_pageview()"
 
 
 Sample Usage:
@@ -21,7 +27,7 @@ Sample Usage:
   $ python analytics.py
 
   Currently this uses pdb.set_trace() to boot up the interpreter right after 
-  results have been returned to `results`
+  the template has been rendered.  API return == `results`
 
 """
 
@@ -41,7 +47,7 @@ from datetime import timedelta
 
 class AnalyticsWrapper:
   """
-  TODO: Expand so it can iterate over clients + add methods for different lookups.
+  TODO: Extend class functionality so that it can have account info specified via params.
 
   """
 
@@ -58,7 +64,7 @@ class AnalyticsWrapper:
         print 'Could not find a valid profile for this user.'
       else:
         # results = get_top_keywords(service, first_profile_id)
-        results = self.get_info_until_today(service, first_profile_id, 30)
+        results = self.get_weekly_pageviews(service, first_profile_id)
         self.print_results(results)
         self.render_template(self.organize_results(results))
         pdb.set_trace()
@@ -78,6 +84,59 @@ class AnalyticsWrapper:
       print ('The credentials have been revoked or expired, please re-run '
              'the application to re-authorize')
 
+  def get_info_until_today(self, service, profile_id, days, metrics='ga:sessions,ga:pageviews', dimensions=''):
+    """
+    This is the core method which is used to make calls to the Google Analytics API.
+    It is rarely used directly, instead intermediate wrapper functions like 
+    get_weekly_pageviews() are called.
+
+    It returns the unmodified API response, which can then be processed by organize_results().
+    """
+
+    return service.data().ga().get(
+      ids='ga:' + profile_id,
+      start_date=self.days_from_today(days),
+      end_date=self.days_from_today(0),
+      dimensions=dimensions,
+      metrics=metrics,
+      start_index='1',
+      max_results='25').execute()
+
+  def get_top_keywords(self, service, profile_id):
+    """Executes and returns data from the Core Reporting API.
+
+    This queries the API for the top 25 organic search terms by visits.
+
+    Args:
+      service: The service object built by the Google API Python client library.
+      profile_id: String The profile ID from which to retrieve analytics data.
+
+    Returns:
+      The response returned from the Core Reporting API.
+    """
+    # self.get_info_until_today(service, profile_id, 7, metrics='ga:visits', dimensions='ga:source,ga:keyword')
+    return service.data().ga().get(
+        ids='ga:' + profile_id,
+        start_date='2014-04-01',
+        end_date='2014-06-15',
+        metrics='ga:visits',
+        dimensions='ga:source,ga:keyword',
+        sort='-ga:visits',
+        filters='ga:medium==organic',
+        start_index='1',
+        max_results='25').execute()
+        
+
+  def get_weekly_pageviews(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 7, metrics='ga:sessions,ga:pageviews')
+    output['description'] = 'Pageviews for the last 7 days.'
+    return output
+
+  def get_yearly_pageviews(self, service, profile_id):
+    return self.get_info_until_today(service, profile_id, 365, metrics='ga:sessions,ga:pageviews')
+
+  def new_versus_returning(self, service, profile_id):
+    return self.get_info_until_today(service, profile_id, 365, dimensions='ga:userType', metrics='ga:sessions')
 
   def get_first_profile_id(self, service):
     """Traverses Management API to return the first profile id.
@@ -113,44 +172,6 @@ class AnalyticsWrapper:
 
     return None
 
-  def get_top_keywords(self, service, profile_id):
-    """Executes and returns data from the Core Reporting API.
-
-    This queries the API for the top 25 organic search terms by visits.
-
-    Args:
-      service: The service object built by the Google API Python client library.
-      profile_id: String The profile ID from which to retrieve analytics data.
-
-    Returns:
-      The response returned from the Core Reporting API.
-    """
-
-    return service.data().ga().get(
-        ids='ga:' + profile_id,
-        start_date='2014-04-01',
-        end_date='2014-06-15',
-        metrics='ga:visits',
-        dimensions='ga:source,ga:keyword',
-        sort='-ga:visits',
-        filters='ga:medium==organic',
-        start_index='1',
-        max_results='25').execute()
-
-  def get_info_until_today(self, service, profile_id, days):
-    """
-    TODO: Expand so that it does more than just look up sessions/sessionDuration for userType.
-    """
-
-    return service.data().ga().get(
-      ids='ga:' + profile_id,
-      start_date=self.days_from_today(days),
-      end_date=self.days_from_today(0),
-      dimensions='ga:userType',
-      metrics='ga:sessions, ga:sessionDuration',
-      start_index='1',
-      max_results='25').execute()
-
   def days_from_today(self, days=0):
     """
     Returns the number of days in the past from today.  If input is omitted or at
@@ -180,10 +201,19 @@ class AnalyticsWrapper:
     Make sure to return a new object which is sorted - do not sort the original results.
 
     Still in dev.
+
+    TODO: Manually iterate through headers and replace things like "ga:pageviews" with
+    something that sounds more like natural english.
+
+    OR: Manually inject a description into the return of each function, describing what
+    the query looks up.
+    e.g. "get_yearly_pageviews()" adds: output['description'] = 'Pageviews for the last 365 days'
     """
     output = {}
     output['headers'] = []
     output['rows'] = []
+    output['totals'] = []
+    output['description'] = results['description']
 
     try:
 
@@ -192,6 +222,9 @@ class AnalyticsWrapper:
 
       for row in results['rows']:
         output['rows'].append(row)
+
+      # for key, value in results['totalsForAllResults']:
+
 
 
       return output
@@ -239,6 +272,9 @@ class AnalyticsWrapper:
     Renders to HTML template. The input must be organized first through organize_results().
 
     Still in dev.
+
+    TODO: Expand so that it can take multiple similar table inputs.
+    e.g. replace 'headers': with 'table1.headers' (except don't hardcode #s)
     '''
     templateLoader = jinja2.FileSystemLoader( searchpath="./" )
     templateEnv = jinja2.Environment( loader=templateLoader )
@@ -248,7 +284,8 @@ class AnalyticsWrapper:
     templateVars = { "title" : "Outfirst Insights",
                  "table" : template_data,
                  "headers" : template_data.get('headers'),
-                 "rows" : template_data.get('rows')
+                 "rows" : template_data.get('rows'),
+                 "description" : template_data.get('description')
                }
 
     outputText = template.render( templateVars )
@@ -259,7 +296,7 @@ class AnalyticsWrapper:
 
   def write_to_file(self, content, output_file_name):
     """
-    In dev. 
+    Simplifies creating/writing to files.  Used for template rendering but generic enough for other purposes.
     """
     try:
       output = open(output_file_name, 'w')

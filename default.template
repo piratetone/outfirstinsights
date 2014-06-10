@@ -12,6 +12,7 @@
     <h1>Outfirst Insights</h1>
     <p>This is the work-in-progress template to render for email</p>
 
+    <p>This table is for: {{ description }}</p>
     <table>
         <tr>
         {% for header in headers %}
@@ -25,6 +26,7 @@
         </tr>
         {% endfor %}
     </table>
+
 </div>
 
 </body>
