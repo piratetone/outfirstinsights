@@ -133,10 +133,14 @@ class AnalyticsWrapper:
     return output
 
   def get_yearly_pageviews(self, service, profile_id):
-    return self.get_info_until_today(service, profile_id, 365, metrics='ga:sessions,ga:pageviews')
+    output = self.get_info_until_today(service, profile_id, 365, metrics='ga:sessions,ga:pageviews')
+    output['description'] = 'Pageviews for the last 365 days.'
+    return output
 
   def new_versus_returning(self, service, profile_id):
-    return self.get_info_until_today(service, profile_id, 365, dimensions='ga:userType', metrics='ga:sessions')
+    output = self.get_info_until_today(service, profile_id, 365, dimensions='ga:userType', metrics='ga:sessions')
+    output['description'] = 'Shows new versus returning viewers over the last 365 days.'
+    return output
 
   def get_first_profile_id(self, service):
     """Traverses Management API to return the first profile id.
