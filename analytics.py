@@ -15,11 +15,18 @@ Todo:
 -Add ability for template rendering to be able to be fed numerous tables.
 -->A for-loop over a list containing template_data objects fed into the fn.
 
+ANALYTICS TO IMPLEMENT:
+  Top Social Sources
+  Top Locations
+  Conversion Rates for each of these things!
+
 DONE:
 -Build output system that renders utilizing HTML templates (Jinja)
 -Automatically calculate variable date differences to query Google.
 -Add ease-of-use methods to do basic calls like "pageviews by week" and such
 ---> Abstract away from excessie param use by having methods like "get_weekly_pageview()"
+
+
 
 
 Sample Usage:
@@ -64,7 +71,8 @@ class AnalyticsWrapper:
         print 'Could not find a valid profile for this user.'
       else:
         # results = get_top_keywords(service, first_profile_id)
-        results = self.get_weekly_pageviews(service, first_profile_id)
+        # results = self.get_weekly_pageviews(service, first_profile_id)
+        results = self.get_social_sources(service, first_profile_id)
         self.print_results(results)
         self.render_template(self.organize_results(results))
         pdb.set_trace()
@@ -84,7 +92,7 @@ class AnalyticsWrapper:
       print ('The credentials have been revoked or expired, please re-run '
              'the application to re-authorize')
 
-  def get_info_until_today(self, service, profile_id, days, metrics='ga:sessions,ga:pageviews', dimensions=''):
+  def get_info_until_today(self, service, profile_id, days, metrics='ga:sessions,ga:pageviews', dimensions='', sort=''):
     """
     This is the core method which is used to make calls to the Google Analytics API.
     It is rarely used directly, instead intermediate wrapper functions like 
@@ -93,14 +101,25 @@ class AnalyticsWrapper:
     It returns the unmodified API response, which can then be processed by organize_results().
     """
 
-    return service.data().ga().get(
-      ids='ga:' + profile_id,
-      start_date=self.days_from_today(days),
-      end_date=self.days_from_today(0),
-      dimensions=dimensions,
-      metrics=metrics,
-      start_index='1',
-      max_results='25').execute()
+    if (sort):
+      return service.data().ga().get(
+        ids='ga:' + profile_id,
+        start_date=self.days_from_today(days),
+        end_date=self.days_from_today(0),
+        dimensions=dimensions,
+        sort=sort,
+        metrics=metrics,
+        start_index='1',
+        max_results='25').execute()
+    else:
+      return service.data().ga().get(
+        ids='ga:' + profile_id,
+        start_date=self.days_from_today(days),
+        end_date=self.days_from_today(0),
+        dimensions=dimensions,
+        metrics=metrics,
+        start_index='1',
+        max_results='25').execute()
 
   def get_top_keywords(self, service, profile_id):
     """Executes and returns data from the Core Reporting API.
@@ -125,8 +144,32 @@ class AnalyticsWrapper:
         filters='ga:medium==organic',
         start_index='1',
         max_results='25').execute()
-        
 
+  def get_sources(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 365, 
+      metrics='ga:sessions,ga:pageviews,ga:sessionDuration',
+      dimensions='ga:source',
+      sort='-ga:sessions')
+    output['description'] = 'Site usage broken down by source, sorted by sessions.'
+    return output
+
+  def get_social_sources(self, service, profile_id):
+    """
+    TODO: Automatically prune the '(not set)' response, which is non-social networks.
+    """
+    output = self.get_info_until_today(service, profile_id, 365, 
+      metrics='ga:sessions,ga:pageviews,ga:sessionDuration',
+      dimensions='ga:socialNetwork',
+      sort='-ga:sessions')
+    output['description'] = 'Referalls to site from social networks, sorted by sessions.'
+
+    #Remove the non-social/'other' row from the list.
+    for row in output['rows']:
+      if row[0] == '(not set)':
+        output['rows'].remove(row)
+
+    return output
+        
   def get_weekly_pageviews(self, service, profile_id):
     output = self.get_info_until_today(service, profile_id, 7, metrics='ga:sessions,ga:pageviews')
     output['description'] = 'Pageviews for the last 7 days.'
@@ -135,6 +178,40 @@ class AnalyticsWrapper:
   def get_yearly_pageviews(self, service, profile_id):
     output = self.get_info_until_today(service, profile_id, 365, metrics='ga:sessions,ga:pageviews')
     output['description'] = 'Pageviews for the last 365 days.'
+    return output
+
+  def get_top_pages(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 365, 
+      metrics='ga:pageviews,ga:uniquePageviews,ga:timeOnPage,ga:bounces,ga:entrances,ga:exits',
+      dimensions='ga:pagePath',
+      sort='-ga:entrances')
+    output['description'] = 'Pages sorted by pageviews.'
+    return output    
+
+  def get_sessions(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 365, metrics='ga:sessions')
+    output['description'] = 'All sessions for the last 365 days.'
+    return output
+
+  def get_unique_sessions(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 365, metrics='ga:users')
+    output['description'] = 'Amount of unique visitors over the last 365 days.'
+    return output    
+
+  def get_leads(self, service, profile_id):
+    """
+    TODO: Verify that the query is the right way to get lead info.  'All' vs. numbering them explicitly.
+    """
+    output = self.get_info_until_today(service, profile_id, 365, 
+      metrics="ga:goalStartsAll,ga:goalCompletionsAll,ga:goalValueAll",
+      sort="-ga:goalCompletionsAll")
+    output["description"] = "Overview of leads for the last 365 days."
+    return output
+
+  def get_lead_conversion_rate(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 365, 
+      metrics="ga:goalConversionRateAll")
+    ouptput['description'] = "The percentage of sessions which resulted in a conversion to at least one of your leads."
     return output
 
   def new_versus_returning(self, service, profile_id):
