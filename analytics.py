@@ -73,11 +73,12 @@ class AnalyticsWrapper:
         results = self.get_social_sources(service, first_profile_id)
         self.print_results(results)
         organized_results = self.organize_results(results)
-        # self.render_template(self.organize_results(results))
+        combined_results = []
+
         content = ContentPresentor(organized_results)
+        content.run()
         pdb.set_trace()
         
-
     except TypeError, error:
       # Handle errors in constructing a query.
       print ('There was an error in constructing your query : %s' % error)
@@ -314,6 +315,10 @@ class AnalyticsWrapper:
       print type(e)
       print e
 
+  def combine_results(self, organized_results):
+    output = []
+
+
   def print_results(self, results):
     """Prints out the results.
 
@@ -344,11 +349,6 @@ class AnalyticsWrapper:
 
     else:
       print 'No Rows Found'
-
-  #TODO:  The functions below are to be separated out into a separate class!  
-  #Design without access to instance+class variables!
-  # Only data so far it needs is the output of organize_results - but that's acceptable as class output.
-
   
 
 class ContentPresentor:
@@ -361,7 +361,14 @@ class ContentPresentor:
   """
 
   def __init__(self, content):
-    self.content = content
+    self.content = content  
+
+  def run():
+    if type(self.content) is dict: #Only one item passed in
+      render_template(self.content)
+    else if type(self.content) is list: 
+      for item in self.content:
+        render_template(item)
 
   def render_template(self):
     '''
