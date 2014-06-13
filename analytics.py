@@ -10,13 +10,11 @@
 Todo:
 
 -Setup multiple account/site management (refactor 'get_first_profile_id')
--Have a discussion with Gary about what analytics/metrics he thinks are most important.
 -Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
 -Add ability for template rendering to be able to be fed numerous tables.
--->A for-loop over a list containing template_data objects fed into the fn.
+-->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
 
 ANALYTICS TO IMPLEMENT:
-  Top Social Sources
   Top Locations
   Conversion Rates for each of these things!
 
@@ -74,7 +72,9 @@ class AnalyticsWrapper:
         # results = self.get_weekly_pageviews(service, first_profile_id)
         results = self.get_social_sources(service, first_profile_id)
         self.print_results(results)
-        self.render_template(self.organize_results(results))
+        organized_results = self.organize_results(results)
+        # self.render_template(self.organize_results(results))
+        content = ContentPresentor(organized_results)
         pdb.set_trace()
         
 
@@ -347,8 +347,23 @@ class AnalyticsWrapper:
 
   #TODO:  The functions below are to be separated out into a separate class!  
   #Design without access to instance+class variables!
+  # Only data so far it needs is the output of organize_results - but that's acceptable as class output.
 
-  def render_template(self, template_data):
+  
+
+class ContentPresentor:
+  """
+  Takes the result from the AnalyticsWrapper.organize_results(), and readies 
+  the data for presentation.  Output methods will include:
+
+    1. Render via HTML template to create an HTML file.
+    2. Email.
+  """
+
+  def __init__(self, content):
+    self.content = content
+
+  def render_template(self):
     '''
     Renders to HTML template. The input must be organized first through organize_results().
 
@@ -357,6 +372,7 @@ class AnalyticsWrapper:
     TODO: Expand so that it can take multiple similar table inputs.
     e.g. replace 'headers': with 'table1.headers' (except don't hardcode #s)
     '''
+    template_data = self.content
     templateLoader = jinja2.FileSystemLoader( searchpath="./" )
     templateEnv = jinja2.Environment( loader=templateLoader )
     TEMPLATE_FILE = "default.template"
@@ -385,7 +401,6 @@ class AnalyticsWrapper:
       output.close()
     except Error, e:
       print "Exception: " + e
-
 
 if __name__ == '__main__':
   api = AnalyticsWrapper()
