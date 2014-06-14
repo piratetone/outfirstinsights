@@ -360,44 +360,26 @@ class ContentPresentor:
   """
 
   def __init__(self, content):
-    self.content = content  
+    """
+    Content must be a list of 
+    """
+    if content is list:
+      self.content = content  
+    else:
+      raise Exception("Input must be a list.")
 
   def run(self):
     self.render_template(self.content)
 
   def render_template(self, content):
     '''
-    Renders to HTML template. The input must be organized first through organize_results().
-
-    Still in dev.
-
-    TODO: Expand so that it can take multiple similar table inputs.
-    e.g. replace 'headers': with 'table1.headers' (except don't hardcode #s)
+    Renders HTML template with data.
     '''
-
-    # if type(self.content) is dict: #Only one item passed in
-    #   template_data = self.content
-    #   templateVars = { "title" : "Outfirst Insights",
-    #          "table" : template_data,
-    #          "headers" : template_data.get('headers'),
-    #          "rows" : template_data.get('rows'),
-    #          "description" : template_data.get('description')
-    #        }
-    # else if type(self.content) is list: 
-      
-
     template_data = content
     templateLoader = jinja2.FileSystemLoader( searchpath="./" )
     templateEnv = jinja2.Environment( loader=templateLoader )
     TEMPLATE_FILE = "default.template"
     template = templateEnv.get_template( TEMPLATE_FILE )
-
-    # templateVars = { "title" : "Outfirst Insights",
-    #              "table" : template_data,
-    #              "headers" : template_data.get('headers'),
-    #              "rows" : template_data.get('rows'),
-    #              "description" : template_data.get('description')
-    #            }
     templateVars = { "title" : "Outfirst Insights",
              "tables" : template_data,
            }
