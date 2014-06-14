@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-
-  <title>{{ title }}</title>  <!-- Do emails use <title>? -->
 </head>
 
 <body>
@@ -12,20 +10,23 @@
     <h1>Outfirst Insights</h1>
     <p>This is the work-in-progress template to render for email</p>
 
-    <p>This table is for: {{ description }}</p>
-    <table>
-        <tr>
-        {% for header in headers %}
-        <th>{{ header }}</th>{% endfor %}
-        </tr>
-    {% for row in rows %}
-        <tr>
-        {% for cell in row %}
-            <td>{{cell}}</td>
-        {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
+    {% for table in tables %}
+
+        <p>This table is for: {{ table.description }}</p>
+        <table>
+            <tr>
+            {% for header in table.headers %}
+            <th>{{ header }}</th>{% endfor %}
+            </tr>
+        {% for row in table.rows %}
+            <tr>
+            {% for cell in row %}
+                <td>{{cell}}</td>
+            {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    {% endfor %}
 
 </div>
 

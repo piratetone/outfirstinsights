@@ -74,8 +74,11 @@ class AnalyticsWrapper:
         self.print_results(results)
         organized_results = self.organize_results(results)
         combined_results = []
+        combined_results.append(organized_results)
+        combined_results.append(self.organize_results(self.get_yearly_pageviews(service, first_profile_id)))
 
-        content = ContentPresentor(organized_results)
+        # content = ContentPresentor(organized_results)
+        content = ContentPresentor(combined_results)
         content.run()
         pdb.set_trace()
         
@@ -315,10 +318,6 @@ class AnalyticsWrapper:
       print type(e)
       print e
 
-  def combine_results(self, organized_results):
-    output = []
-
-
   def print_results(self, results):
     """Prints out the results.
 
@@ -363,14 +362,10 @@ class ContentPresentor:
   def __init__(self, content):
     self.content = content  
 
-  def run():
-    if type(self.content) is dict: #Only one item passed in
-      render_template(self.content)
-    else if type(self.content) is list: 
-      for item in self.content:
-        render_template(item)
+  def run(self):
+    self.render_template(self.content)
 
-  def render_template(self):
+  def render_template(self, content):
     '''
     Renders to HTML template. The input must be organized first through organize_results().
 
@@ -379,18 +374,33 @@ class ContentPresentor:
     TODO: Expand so that it can take multiple similar table inputs.
     e.g. replace 'headers': with 'table1.headers' (except don't hardcode #s)
     '''
-    template_data = self.content
+
+    # if type(self.content) is dict: #Only one item passed in
+    #   template_data = self.content
+    #   templateVars = { "title" : "Outfirst Insights",
+    #          "table" : template_data,
+    #          "headers" : template_data.get('headers'),
+    #          "rows" : template_data.get('rows'),
+    #          "description" : template_data.get('description')
+    #        }
+    # else if type(self.content) is list: 
+      
+
+    template_data = content
     templateLoader = jinja2.FileSystemLoader( searchpath="./" )
     templateEnv = jinja2.Environment( loader=templateLoader )
     TEMPLATE_FILE = "default.template"
     template = templateEnv.get_template( TEMPLATE_FILE )
 
+    # templateVars = { "title" : "Outfirst Insights",
+    #              "table" : template_data,
+    #              "headers" : template_data.get('headers'),
+    #              "rows" : template_data.get('rows'),
+    #              "description" : template_data.get('description')
+    #            }
     templateVars = { "title" : "Outfirst Insights",
-                 "table" : template_data,
-                 "headers" : template_data.get('headers'),
-                 "rows" : template_data.get('rows'),
-                 "description" : template_data.get('description')
-               }
+             "tables" : template_data,
+           }
 
     outputText = template.render( templateVars )
 
