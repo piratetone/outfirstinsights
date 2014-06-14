@@ -77,7 +77,6 @@ class AnalyticsWrapper:
         combined_results.append(organized_results)
         combined_results.append(self.organize_results(self.get_yearly_pageviews(service, first_profile_id)))
 
-        # content = ContentPresentor(organized_results)
         content = ContentPresentor(combined_results)
         content.run()
         pdb.set_trace()
@@ -366,7 +365,7 @@ class ContentPresentor:
     if content is list:
       self.content = content  
     else:
-      raise Exception("Input must be a list.")
+      raise Exception("Error in instantiating ContentPresentor: Input must be a list.")
 
   def run(self):
     self.render_template(self.content)
