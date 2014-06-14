@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This code has been has been written by Adam Coard, but was originally based 
-# off of the Google Analytics 'Hello' tutorial API.  So, credit where it is due, 
+# off of the Google Analytics 'Hello' example API.  So, credit where it is due, 
 # none of this is possible without Google's extensive API and documentation.
 
 
@@ -11,7 +11,6 @@ Todo:
 
 -Setup multiple account/site management (refactor 'get_first_profile_id')
 -Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
--Add ability for template rendering to be able to be fed numerous tables.
 -->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
 
 ANALYTICS TO IMPLEMENT:
@@ -23,8 +22,11 @@ DONE:
 -Automatically calculate variable date differences to query Google.
 -Add ease-of-use methods to do basic calls like "pageviews by week" and such
 ---> Abstract away from excessie param use by having methods like "get_weekly_pageview()"
+-Add ability for template rendering to be able to be fed numerous tables.
 
 
+Possible Features:
+-Easy way for each client to modify what analytics they get. (From a web front end?)
 
 
 Sample Usage:
@@ -68,14 +70,16 @@ class AnalyticsWrapper:
       if not first_profile_id:
         print 'Could not find a valid profile for this user.'
       else:
-        # results = get_top_keywords(service, first_profile_id)
-        # results = self.get_weekly_pageviews(service, first_profile_id)
+
+
         results = self.get_social_sources(service, first_profile_id)
         self.print_results(results)
         organized_results = self.organize_results(results)
         combined_results = []
         combined_results.append(organized_results)
         combined_results.append(self.organize_results(self.get_yearly_pageviews(service, first_profile_id)))
+        combined_results.append(self.organize_results(self.get_weekly_pageviews(service, first_profile_id)))
+        combined_results.append(self.organize_results(self.get_top_keywords(service, first_profile_id)))
 
         content = ContentPresentor(combined_results)
         content.run()
@@ -137,7 +141,7 @@ class AnalyticsWrapper:
       The response returned from the Core Reporting API.
     """
     # self.get_info_until_today(service, profile_id, 7, metrics='ga:visits', dimensions='ga:source,ga:keyword')
-    return service.data().ga().get(
+    output = service.data().ga().get(
         ids='ga:' + profile_id,
         start_date='2014-04-01',
         end_date='2014-06-15',
@@ -147,6 +151,8 @@ class AnalyticsWrapper:
         filters='ga:medium==organic',
         start_index='1',
         max_results='25').execute()
+    output['description'] = "Shows the top 25 organic search terms by visits."
+    return output
 
   def get_sources(self, service, profile_id):
     output = self.get_info_until_today(service, profile_id, 365, 
@@ -362,7 +368,7 @@ class ContentPresentor:
     """
     Content must be a list of 
     """
-    if content is list:
+    if isinstance(content, list):
       self.content = content  
     else:
       raise Exception("Error in instantiating ContentPresentor: Input must be a list.")
