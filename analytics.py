@@ -9,30 +9,25 @@
 """
 Todo:
 
-->Create frontend for clients to interact with (Flask)
--Setup multiple account/site management (refactor 'get_first_profile_id')
-  IDEA: Have Gary create an Outfirst Insights account for Google Analytics.
-        This account would be the 'record' of who is subscribed to Outfirst Insights.
-        If someone unsubscribed, they'd be removed from the account.  This means all
-        profiles in the account would be traversed and emailed too.
 ->Add ability to change description text without editing analytics.py.  Store in external files?
+--->If the tables are hardcoded into template (i.e. not in loop) then descriptions can be too.
+->Write email-sending logic.
+-->IMPORTANT: Extend functionality to link site to email address.
+->Separate ContentPresentor into a separate file.
 
 ANALYTICS TO IMPLEMENT:
   Top Locations
   Conversion Rates for each of these things!
 
-DONE:
--Build output system that renders utilizing HTML templates (Jinja)
--Automatically calculate variable date differences to query Google.
--Add ease-of-use methods to do basic calls like "pageviews by week" and such
----> Abstract away from excessie param use by having methods like "get_weekly_pageview()"
--Add ability for template rendering to be able to be fed numerous tables.
--->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
--Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
 
-
-Possible Features:
+Ideas:
 -Easy way for each client to modify what analytics they get. (From a web front end?)
+
+--Have Gary create an Outfirst Insights account for Google Analytics.
+  This account would be the 'record' of who is subscribed to Outfirst Insights.
+  If someone unsubscribed, they'd be removed from the account.  This means all
+  profiles in the account would be traversed and emailed too.
+  This would only require one client_secrets.json file!
 
 
 Sample Usage:
@@ -57,6 +52,10 @@ from oauth2client.client import AccessTokenRefreshError
 
 from datetime import date
 from datetime import timedelta
+
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 class AnalyticsWrapper:
   """This class is responsible for quering the Google Analytics API and organizing the responses.
@@ -85,9 +84,9 @@ class AnalyticsWrapper:
           content.run()
           pdb.set_trace()
         
-    # except TypeError, error:
-    #   # Handle errors in constructing a query.
-    #   print ('There was an error in constructing your query : %s' % error)
+    except TypeError, error:
+      # Handle errors in constructing a query.
+      print ('There was an error in constructing your query : %s' % error)
 
     except HttpError, error:
       # Handle API errors.
@@ -443,6 +442,25 @@ class ContentPresentor:
     self.write_to_file(outputText, 'temp.html')
     
     return outputText
+
+  def email(self, rendered_template):
+    """This function currently doesn't work because I don't have the SMTP info.
+    """
+    sending_email = "outfirst@email.com"
+    recepient = "your@email.com"
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = "Outfirst Insights" #TODO: 'for the week of XXX'
+    msg['From'] = sending_email
+    msg['To'] = recepient
+
+    content = MIMEText(html, rendered_template)
+    msg.attach(content)
+    # Send the message via local SMTP server.
+    s = smtplib.SMTP('localhost') #TODO: Fill this out.
+    s.sendmail(sending_email, recipient, msg.as_string())
+    s.quit()
+
 
   def write_to_file(self, content, output_file_name):
     """

@@ -15,3 +15,15 @@ Running
 This program is still actively in development.  When run, it will eject the user into the terminal (via pdb.set_trace()) after the data has been loaded for the default account.
 
   python analytics.py
+
+
+Changelog
+==========
+-Build output system that renders utilizing HTML templates (Jinja)
+-Automatically calculate variable date differences to query Google.
+-Add ease-of-use methods to do basic calls like "pageviews by week" and such
+---> Abstract away from excessie param use by having methods like "get_weekly_pageview()"
+-Add ability for template rendering to be able to be fed numerous tables.
+-->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
+-Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
+-Setup multiple account/site management (refactor 'get_first_profile_id')
