@@ -10,6 +10,7 @@
 Todo:
 
 ->Add ability to change description text without editing analytics.py.  Store in external files?
+->Tidy up table header names.
 --->If the tables are hardcoded into template (i.e. not in loop) then descriptions can be too.
 ->Write email-sending logic.
 -->IMPORTANT: Extend functionality to link site to email address.
@@ -357,11 +358,18 @@ class AnalyticsWrapper:
     try:
 
       for item in results['columnHeaders']:
-        output['headers'].append(item['name'])
+        #Clean up the headers, remove the technical descriptions Google Analytics includes.
+        header = item['name'].replace('ga:', '').capitalize()
+
+        if header == 'Socialnetwork':
+          header = 'Social network'
+        if header == 'Sessionduration':
+          header = 'Session duration'
+
+        output['headers'].append(header)
 
       for row in results['rows']:
         output['rows'].append(row)
-
       return output
 
     except Exception as e:
