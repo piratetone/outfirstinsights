@@ -48,7 +48,7 @@ __author__ = 'arcoard@gmail.com (Adam Coard)'
 
 import argparse
 import sys
-import pdb
+import pdb #For dev only.  Can remove for prod.
 import jinja2
 
 from apiclient.errors import HttpError
@@ -59,8 +59,7 @@ from datetime import date
 from datetime import timedelta
 
 class AnalyticsWrapper:
-  """
-  TODO: Extend class functionality so that it can have account info specified via params.
+  """This class is responsible for quering the Google Analytics API and organizing the responses.
 
   """
 
@@ -78,23 +77,17 @@ class AnalyticsWrapper:
       if not all_profile_ids:
         print 'Could not find a valid profile for this user.'
       else:
-        results = self.get_social_sources(service, first_profile_id)
-        self.print_results(results)
-        organized_results = self.organize_results(results)
-        combined_results = []
-        # combined_results.append(organized_results)
-        # combined_results.append(self.organize_results(self.get_yearly_pageviews(service, first_profile_id)))
-        # combined_results.append(self.organize_results(self.get_weekly_pageviews(service, first_profile_id)))
-        # combined_results.append(self.organize_results(self.get_top_keywords(service, first_profile_id)))
-        combined_results = self.get_all_profile_analytics(service, first_profile_id)
-
-        content = ContentPresentor(combined_results)
-        content.run()
-        pdb.set_trace()
+        for site in all_profile_ids:
+          site_name = site[1]
+          profile_id = site[0]
+          combined_results = self.get_all_profile_analytics(service, profile_id)
+          content = ContentPresentor(combined_results, site_name)
+          content.run()
+          pdb.set_trace()
         
-    except TypeError, error:
-      # Handle errors in constructing a query.
-      print ('There was an error in constructing your query : %s' % error)
+    # except TypeError, error:
+    #   # Handle errors in constructing a query.
+    #   print ('There was an error in constructing your query : %s' % error)
 
     except HttpError, error:
       # Handle API errors.
@@ -270,9 +263,8 @@ class AnalyticsWrapper:
     return None
 
   def get_all_profile_ids(self, service):
-    """Traverses Management API to return a list of all available profile ids.
-
-    Currently in Dev.  Use get_first_profile_id() as model.
+    """Traverses Management API to returns a list of tuples.  
+    Tuple[0] is the profile id, tuple[1] is site URL
     """
 
     accounts = service.management().accounts().list().execute()
@@ -298,7 +290,8 @@ class AnalyticsWrapper:
             accountId=account_ids[index],
             webPropertyId=web_property_id).execute()
           profiles.append(profile_response)
-          profile_ids.append(profile_response.get('items')[0].get('id'))
+          profile_ids.append( (profile_response.get('items')[0].get('id'), 
+            profile_response.get('items')[0].get('websiteUrl') ))
         index += 1
       return profile_ids      
 
@@ -417,7 +410,7 @@ class ContentPresentor:
     2. Email (TODO!)
   """
 
-  def __init__(self, content):
+  def __init__(self, content, site_name):
     """
     Content must be a list of 
     """
@@ -426,10 +419,12 @@ class ContentPresentor:
     else:
       raise Exception("Error in instantiating ContentPresentor: Input must be a list.")
 
-  def run(self):
-    self.render_template(self.content)
+    self.site_name = site_name
 
-  def render_template(self, content):
+  def run(self):
+    self.render_template(self.content, self.site_name)
+
+  def render_template(self, content, site_name):
     '''
     Renders HTML template with data.
     '''
@@ -439,7 +434,8 @@ class ContentPresentor:
     TEMPLATE_FILE = "default.template"
     template = templateEnv.get_template( TEMPLATE_FILE )
     templateVars = { "title" : "Outfirst Insights",
-             "tables" : template_data,
+              "site_name": site_name,
+              "tables" : template_data,
            }
 
     outputText = template.render( templateVars )
