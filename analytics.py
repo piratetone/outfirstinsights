@@ -9,9 +9,13 @@
 """
 Todo:
 
+->Create frontend for clients to interact with (Flask)
 -Setup multiple account/site management (refactor 'get_first_profile_id')
--Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
--->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
+  IDEA: Have Gary create an Outfirst Insights account for Google Analytics.
+        This account would be the 'record' of who is subscribed to Outfirst Insights.
+        If someone unsubscribed, they'd be removed from the account.  This means all
+        profiles in the account would be traversed and emailed too.
+->Add ability to change description text without editing analytics.py.  Store in external files?
 
 ANALYTICS TO IMPLEMENT:
   Top Locations
@@ -23,6 +27,8 @@ DONE:
 -Add ease-of-use methods to do basic calls like "pageviews by week" and such
 ---> Abstract away from excessie param use by having methods like "get_weekly_pageview()"
 -Add ability for template rendering to be able to be fed numerous tables.
+-->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
+-Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
 
 
 Possible Features:
@@ -70,8 +76,6 @@ class AnalyticsWrapper:
       if not first_profile_id:
         print 'Could not find a valid profile for this user.'
       else:
-
-
         results = self.get_social_sources(service, first_profile_id)
         self.print_results(results)
         organized_results = self.organize_results(results)
@@ -262,6 +266,51 @@ class AnalyticsWrapper:
 
     return None
 
+  def get_all_profile_ids(self, service):
+    """Traverses Management API to return a list of all available profile ids.
+
+    Currently in Dev.  Use get_first_profile_id() as model.
+
+    Note: This function may require tweaking depending on how the master GA account is setup.
+    For now, it iterates over all UA codes that meet the following: UA-uniquecode-1. 
+    That is to say, it will not look at UA-uniquecode-2 and UA-uniquecode-3.  
+    To implement lookup for *-2 and *-3, modify web_property_responses block 
+
+    I believe Google calls these suffix numbers 'web property ids'
+    """
+
+    accounts = service.management().accounts().list().execute()
+    account_ids = []
+    web_property_responses = []
+    web_property_ids = []
+    profiles = []
+    profile_ids = []
+
+    if accounts.get('items'):
+      for account in accounts.get('items'):
+        account_ids.append(account.get('id'))
+        account_id_response = service.management().webproperties().list(
+          accountId=account.get('id')).execute()
+        web_property_responses.append(account_id_response)
+      
+      # return web_property_responses
+
+
+    if web_property_responses:
+      index = 0
+      for response in web_property_responses:
+        for web_property in response.get('items'):
+          web_property_id = web_property.get('id')
+          profile_response = service.management().profiles().list(
+            accountId=account_ids[index],
+            webPropertyId=web_property_id).execute()
+          profiles.append(profile_response)
+          profile_ids.append(profile_response.get('items')[0].get('id'))
+        index += 1
+      return profile_ids      
+
+    return None
+
   def days_from_today(self, days=0):
     """
     Returns the number of days in the past from today.  If input is omitted or at
@@ -312,10 +361,6 @@ class AnalyticsWrapper:
 
       for row in results['rows']:
         output['rows'].append(row)
-
-      # for key, value in results['totalsForAllResults']:
-
-
 
       return output
 
