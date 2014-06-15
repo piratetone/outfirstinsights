@@ -338,8 +338,6 @@ class AnalyticsWrapper:
     """
     Returns the results in a dictionary (or list?)
 
-    Make sure to return a new object which is sorted - do not sort the original results.
-
     OR: Manually inject a description into the return of each function, describing what
     the query looks up.
     e.g. "get_yearly_pageviews()" adds: output['description'] = 'Pageviews for the last 365 days'
