@@ -73,17 +73,20 @@ class AnalyticsWrapper:
     # Try to make a request to the API. Print the results or handle errors.
     try:
       first_profile_id = self.get_first_profile_id(service)
-      if not first_profile_id:
+      all_profile_ids = self.get_all_profile_ids(service)
+      # if not first_profile_id:
+      if not all_profile_ids:
         print 'Could not find a valid profile for this user.'
       else:
         results = self.get_social_sources(service, first_profile_id)
         self.print_results(results)
         organized_results = self.organize_results(results)
         combined_results = []
-        combined_results.append(organized_results)
-        combined_results.append(self.organize_results(self.get_yearly_pageviews(service, first_profile_id)))
-        combined_results.append(self.organize_results(self.get_weekly_pageviews(service, first_profile_id)))
-        combined_results.append(self.organize_results(self.get_top_keywords(service, first_profile_id)))
+        # combined_results.append(organized_results)
+        # combined_results.append(self.organize_results(self.get_yearly_pageviews(service, first_profile_id)))
+        # combined_results.append(self.organize_results(self.get_weekly_pageviews(service, first_profile_id)))
+        # combined_results.append(self.organize_results(self.get_top_keywords(service, first_profile_id)))
+        combined_results = self.get_all_profile_analytics(service, first_profile_id)
 
         content = ContentPresentor(combined_results)
         content.run()
@@ -270,13 +273,6 @@ class AnalyticsWrapper:
     """Traverses Management API to return a list of all available profile ids.
 
     Currently in Dev.  Use get_first_profile_id() as model.
-
-    Note: This function may require tweaking depending on how the master GA account is setup.
-    For now, it iterates over all UA codes that meet the following: UA-uniquecode-1. 
-    That is to say, it will not look at UA-uniquecode-2 and UA-uniquecode-3.  
-    To implement lookup for *-2 and *-3, modify web_property_responses block 
-
-    I believe Google calls these suffix numbers 'web property ids'
     """
 
     accounts = service.management().accounts().list().execute()
@@ -292,10 +288,7 @@ class AnalyticsWrapper:
         account_id_response = service.management().webproperties().list(
           accountId=account.get('id')).execute()
         web_property_responses.append(account_id_response)
-      
-      # return web_property_responses
-
-
+    
     if web_property_responses:
       index = 0
       for response in web_property_responses:
@@ -310,6 +303,21 @@ class AnalyticsWrapper:
       return profile_ids      
 
     return None
+
+  def get_all_profile_analytics(self, service, profile_id):
+    """Function that combines all the separate queries for account analytics into one call.
+    This substantially cleans up the main() fn. 
+    """
+    combined_results = []
+    combined_results.append([
+      self.organize_results(self.get_social_sources(service, profile_id)),
+      self.organize_results(self.get_weekly_pageviews(service, profile_id)),
+      self.organize_results(self.get_yearly_pageviews(service, profile_id)),
+      self.organize_results(self.get_top_keywords(service, profile_id))
+      ])
+    
+    return combined_results[0]
+
 
   def days_from_today(self, days=0):
     """
@@ -406,7 +414,7 @@ class ContentPresentor:
   the data for presentation.  Output methods will include:
 
     1. Render via HTML template to create an HTML file.
-    2. Email.
+    2. Email (TODO!)
   """
 
   def __init__(self, content):
@@ -449,7 +457,7 @@ class ContentPresentor:
       output.write(content)
       output.close()
     except Error, e:
-      print "Exception: " + e
+      print "Write to file exception: " + e
 
 if __name__ == '__main__':
   api = AnalyticsWrapper()
