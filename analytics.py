@@ -340,11 +340,6 @@ class AnalyticsWrapper:
 
     Make sure to return a new object which is sorted - do not sort the original results.
 
-    Still in dev.
-
-    TODO: Manually iterate through headers and replace things like "ga:pageviews" with
-    something that sounds more like natural english.
-
     OR: Manually inject a description into the return of each function, describing what
     the query looks up.
     e.g. "get_yearly_pageviews()" adds: output['description'] = 'Pageviews for the last 365 days'
