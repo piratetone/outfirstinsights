@@ -9,7 +9,7 @@
 <div id="content">
     <h1>Outfirst Insights</h1>
     <p>This is the work-in-progress template to render for email</p>
-    <p> {{ site_name }} </p>
+    <p><a href='{{ site_name }}'> {{ site_name }} </a></p>
 
     {% for table in tables %}
     <div id='table-{{loop.index}}'>
