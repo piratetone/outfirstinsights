@@ -11,17 +11,17 @@
     <p>This is the work-in-progress template to render for email</p>
     <p><a href='{{ site_name }}'> {{ site_name }} </a></p>
 
-    {% for table in tables %}
+    {% for table in tables -%}
     <div id='table-{{loop.index}}'>
         <p>This table is for: {{ table.description }}</p>
         <table>
             <tr>
-            {% for header in table.headers %}
+            {% for header in table.headers -%}
             <th>{{ header }}</th>{% endfor %}
             </tr>
-        {% for row in table.rows %}
+        {% for row in table.rows -%}
             <tr>
-            {% for cell in row %}
+            {% for cell in row -%}
                 <td>{{cell}}</td>
             {% endfor %}
             </tr>
