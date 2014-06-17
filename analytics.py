@@ -10,10 +10,9 @@
 Todo:
 
 ->Add ability to change description text without editing analytics.py.  Store in external files?
-->Tidy up table header names.
 --->If the tables are hardcoded into template (i.e. not in loop) then descriptions can be too.
-->Write email-sending logic.
--->IMPORTANT: Extend functionality to link site to email address.
+->Extend functionality to link site to email address.
+-->Note: The email returned by the Google API is for the account (i.e. all are arcoard@gmail.com)
 ->Separate ContentPresentor into a separate file.
 
 ANALYTICS TO IMPLEMENT:
@@ -161,9 +160,6 @@ class AnalyticsWrapper:
     return output
 
   def get_social_sources(self, service, profile_id):
-    """
-    TODO: Automatically prune the '(not set)' response, which is non-social networks.
-    """
     output = self.get_info_until_today(service, profile_id, 365, 
       metrics='ga:sessions,ga:pageviews,ga:sessionDuration',
       dimensions='ga:socialNetwork',
@@ -218,7 +214,7 @@ class AnalyticsWrapper:
   def get_lead_conversion_rate(self, service, profile_id):
     output = self.get_info_until_today(service, profile_id, 365, 
       metrics="ga:goalConversionRateAll")
-    ouptput['description'] = "The percentage of sessions which resulted in a conversion to at least one of your leads."
+    output['description'] = "The percentage of sessions which resulted in a conversion to at least one of your leads."
     return output
 
   def new_versus_returning(self, service, profile_id):
@@ -288,7 +284,7 @@ class AnalyticsWrapper:
           profile_response = service.management().profiles().list(
             accountId=account_ids[index],
             webPropertyId=web_property_id).execute()
-          if profile_response.get('items'):
+          if profile_response.get('items'): #Make sure profile_response is a full site and not an acct remnant
             profiles.append(profile_response)
             profile_ids.append( (profile_response.get('items')[0].get('id'), 
               profile_response.get('items')[0].get('websiteUrl') ))
@@ -300,6 +296,9 @@ class AnalyticsWrapper:
   def get_all_profile_analytics(self, service, profile_id):
     """Function that combines all the separate queries for account analytics into one call.
     This substantially cleans up the main() fn. 
+
+    If you want to edit the order of the tables in the template, this is the function to edit.
+    The tables will appear in the order that the functions are called within the .append() method.
     """
     combined_results = []
     combined_results.append([
@@ -310,6 +309,9 @@ class AnalyticsWrapper:
       self.organize_results(self.get_unique_sessions(service, profile_id)),
       self.organize_results(self.get_sessions(service, profile_id)),
       self.organize_results(self.get_top_pages(service, profile_id)),
+      self.organize_results(self.get_leads(service, profile_id)),
+      self.organize_results(self.get_lead_conversion_rate(service, profile_id)),
+      self.organize_results(self.new_versus_returning(service, profile_id)),
       self.organize_results(self.get_top_keywords(service, profile_id))
       ])
     
@@ -367,6 +369,16 @@ class AnalyticsWrapper:
           header = 'Unique page views'
         if header == 'Timeonpage':
           header = 'Time on page'
+        if header == 'Pagepath':
+          header = 'Page path'
+        if header == 'Goalconversionrateall':
+          header = 'Goal conversion rate (all goals)'
+        if header == 'Goalstartsall':
+          header = 'Goal starts (all)'
+        if header == 'Goalcompletionsall':
+          header = 'Goal completions (all)'
+        if header == 'Goalvalueall':
+          header ='Goal value (all)'
 
         output['headers'].append(header)
 
@@ -448,7 +460,6 @@ class ContentPresentor:
            }
 
     outputText = template.render( templateVars )
-
     self.write_to_file(outputText, 'temp.html')
     
     return outputText

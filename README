@@ -27,3 +27,5 @@ Changelog
 -->A for-loop over a list containing template_data objects fed into the fn, or explicit table calls?
 -Remove template rendering to a separate class after it's written (during early dev it's in AnalyticsWrapper)
 -Setup multiple account/site management (refactor 'get_first_profile_id')
+->Tidy up table header names.
+->Write email-sending logic.
