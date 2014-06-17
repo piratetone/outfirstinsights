@@ -12,7 +12,7 @@
     <p> {{ site_name }} </p>
 
     {% for table in tables %}
-
+    <div id='table-{{loop.index}}'>
         <p>This table is for: {{ table.description }}</p>
         <table>
             <tr>
@@ -28,6 +28,7 @@
             {% endfor %}
         </table>
         <hr>
+    </div>
     {% endfor %}
 
 </div>
