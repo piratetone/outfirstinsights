@@ -71,9 +71,7 @@ class AnalyticsWrapper:
 
     # Try to make a request to the API. Print the results or handle errors.
     try:
-      first_profile_id = self.get_first_profile_id(service)
       all_profile_ids = self.get_all_profile_ids(service)
-      # if not first_profile_id:
       if not all_profile_ids:
         print 'Could not find a valid profile for this user.'
       else:
@@ -280,18 +278,20 @@ class AnalyticsWrapper:
         account_id_response = service.management().webproperties().list(
           accountId=account.get('id')).execute()
         web_property_responses.append(account_id_response)
+
     
     if web_property_responses:
-      index = 0
+      index = 0 #Used to query the separate list, account_ids, so that each account_id and webPropertyId match up.
       for response in web_property_responses:
         for web_property in response.get('items'):
           web_property_id = web_property.get('id')
           profile_response = service.management().profiles().list(
             accountId=account_ids[index],
             webPropertyId=web_property_id).execute()
-          profiles.append(profile_response)
-          profile_ids.append( (profile_response.get('items')[0].get('id'), 
-            profile_response.get('items')[0].get('websiteUrl') ))
+          if profile_response.get('items'):
+            profiles.append(profile_response)
+            profile_ids.append( (profile_response.get('items')[0].get('id'), 
+              profile_response.get('items')[0].get('websiteUrl') ))
         index += 1
       return profile_ids      
 
@@ -304,8 +304,12 @@ class AnalyticsWrapper:
     combined_results = []
     combined_results.append([
       self.organize_results(self.get_social_sources(service, profile_id)),
+      self.organize_results(self.get_sources(service, profile_id)),
       self.organize_results(self.get_weekly_pageviews(service, profile_id)),
       self.organize_results(self.get_yearly_pageviews(service, profile_id)),
+      self.organize_results(self.get_unique_sessions(service, profile_id)),
+      self.organize_results(self.get_sessions(service, profile_id)),
+      self.organize_results(self.get_top_pages(service, profile_id)),
       self.organize_results(self.get_top_keywords(service, profile_id))
       ])
     
@@ -349,7 +353,6 @@ class AnalyticsWrapper:
     output['description'] = results['description']
 
     try:
-
       for item in results['columnHeaders']:
         #Clean up the headers, remove the technical descriptions Google Analytics includes.
         header = item['name'].replace('ga:', '').capitalize()
@@ -357,7 +360,13 @@ class AnalyticsWrapper:
         if header == 'Socialnetwork':
           header = 'Social network'
         if header == 'Sessionduration':
-          header = 'Session duration'
+          header = 'Session duration (seconds)'
+        if header == 'Pageviews':
+          header = 'Page views'
+        if header == 'Uniquepageviews':
+          header = 'Unique page views'
+        if header == 'Timeonpage':
+          header = 'Time on page'
 
         output['headers'].append(header)
 
