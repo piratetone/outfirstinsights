@@ -1,31 +1,28 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# This code has been has been written by Adam Coard, but was originally based 
-# off of the Google Analytics 'Hello' example API.  So, credit where it is due, 
-# none of this is possible without Google's extensive API and documentation.
+# This code has been has been written by Adam Coard, but none of this is 
+# possible without Google's extensive API and documentation.
 
 
 """
 Todo:
 
-->Add ability to change description text without editing analytics.py.  Store in external files?
---->If the tables are hardcoded into template (i.e. not in loop) then descriptions can be too.
 ->Extend functionality to link site to email address.
 -->Note: The email returned by the Google API is for the account (i.e. all are arcoard@gmail.com)
 -->How does Gary link email to client?  DB or file.py that is list of tuples with (email, websiteUrl)
 
-->Build server backend:
+Weekly Messages / Backend, How to Handle:
+->Cron job on Python script is the simplest solution (<3hrs) (original idea)
+
+Build a Backend (~10-15hrs)
 -->Ability to unsubscribe
 -->Send out weekly emails.
+-->Added functionality: allows ways for clients to modify what analytics they get.
 
 ANALYTICS TO IMPLEMENT:
   Top Locations
   Conversion Rates for each of these things!
-
-
-Ideas:
--Easy way for each client to modify what analytics they get. (From a web front end?)
 
 --Have Gary create an Outfirst Insights account for Google Analytics.
   This account would be the 'record' of who is subscribed to Outfirst Insights.
@@ -43,13 +40,10 @@ Sample Usage:
 
 """
 
-__author__ = 'arcoard@gmail.com (Adam Coard)'
+__author__ = 'arcoard@gmail.com (Adam Coard)' #If you have any questions, shoot me an email!
 
 import argparse
 import sys
-import pdb #For dev only.  Can remove for prod.
-
-
 from content import ContentPresentor
 
 from apiclient.errors import HttpError
@@ -58,6 +52,9 @@ from oauth2client.client import AccessTokenRefreshError
 
 from datetime import date
 from datetime import timedelta
+
+debug = False
+import pdb #For dev only.  Can remove for prod.
 
 class AnalyticsWrapper:
   """This class is responsible for quering the Google Analytics API and organizing the responses.
@@ -82,7 +79,8 @@ class AnalyticsWrapper:
           combined_results = self.get_all_profile_analytics(service, profile_id)
           content = ContentPresentor(combined_results, site_name)
           content.run()
-          pdb.set_trace()
+          if debug:
+            pdb.set_trace()
         
     except TypeError, error:
       # Handle errors in constructing a query.

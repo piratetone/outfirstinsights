@@ -23,6 +23,11 @@ class ContentPresentor:
       raise Exception("Error in instantiating ContentPresentor: Input must be a list.")
 
     self.site_name = site_name
+    #Pretty site name = http://wwww.THISPARTHERE.com.
+    if 'www' in site_name:
+      self.pretty_site_name = site_name[len('http://www.'):-len('.com')]
+    else:
+      self.pretty_site_name = site_name[len('http://'):-len('.com')]
 
   def run(self):
     self.render_template(self.content, self.site_name)
@@ -42,7 +47,7 @@ class ContentPresentor:
            }
 
     outputText = template.render( templateVars )
-    self.write_to_file(outputText, 'temp.html')
+    self.write_to_file(outputText, self.pretty_site_name + '.html')
     
     return outputText
 
