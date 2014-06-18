@@ -40,6 +40,6 @@
 
 </div>
 
-<p>Want to unsubscribe?  Send us an email about cancelling your account and we'll help you out. <a href="mailto:someone@example.com?Subject=Unsubscribe" target="_top"> FILL OUT EMAIL</a>
+<p><small>Want to unsubscribe?  Send us an email about cancelling your account and we'll help you out. <a href="mailto:someone@example.com?Subject=Unsubscribe" target="_top"> FILL OUT EMAIL</a></p></small>
 </body>
 </html>
