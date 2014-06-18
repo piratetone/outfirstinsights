@@ -12,24 +12,20 @@ Todo:
 -->Note: The email returned by the Google API is for the account (i.e. all are arcoard@gmail.com)
 -->How does Gary link email to client?  DB or file.py that is list of tuples with (email, websiteUrl)
 
-Weekly Messages / Backend, How to Handle:
-->Cron job on Python script is the simplest solution (<3hrs) (original idea)
-
-Build a Backend (~10-15hrs)
--->Ability to unsubscribe
--->Send out weekly emails.
--->Added functionality: allows ways for clients to modify what analytics they get.
-
-ANALYTICS TO IMPLEMENT:
-  Top Locations
-  Conversion Rates for each of these things!
-
 --Have Gary create an Outfirst Insights account for Google Analytics.
   This account would be the 'record' of who is subscribed to Outfirst Insights.
   If someone unsubscribed, they'd be removed from the account.  This means all
   profiles in the account would be traversed and emailed too (see problems with email above)
   This would only require one client_secrets.json file!
 
+Weekly Messages / Backend, How to Handle:
+->Cron job on Python script is the simplest solution (<3hrs) (original idea)
+->Requires manual unsubscription.
+
+Build a Backend (database + website to interact with it.  User authentication, etc) (~10-15hrs)
+-->Ability to unsubscribe
+-->Send out weekly emails.
+-->Added functionality: allows ways for clients to modify what analytics they get.
 
 Sample Usage:
 
@@ -156,7 +152,7 @@ class AnalyticsWrapper:
       metrics='ga:sessions,ga:pageviews,ga:sessionDuration',
       dimensions='ga:source',
       sort='-ga:sessions')
-    output['description'] = 'Site usage broken down by source, sorted by sessions.'
+    output['description'] = 'Referalls to the site from all websites, sorted by sessions.'
     return output
 
   def get_social_sources(self, service, profile_id):
@@ -221,6 +217,12 @@ class AnalyticsWrapper:
     output = self.get_info_until_today(service, profile_id, 365, dimensions='ga:userType', metrics='ga:sessions')
     output['description'] = 'Shows new versus returning viewers over the last 365 days.'
     return output
+
+  def get_location(self, service, profile_id):
+    output = self.get_info_until_today(service, profile_id, 365, 
+      dimensions='ga:country',)
+    output['description'] = 'Pages sorted by pageviews.'
+    return output   
 
   def get_first_profile_id(self, service):
     """Traverses Management API to return the first profile id.
@@ -312,6 +314,7 @@ class AnalyticsWrapper:
       self.organize_results(self.get_leads(service, profile_id)),
       self.organize_results(self.get_lead_conversion_rate(service, profile_id)),
       self.organize_results(self.new_versus_returning(service, profile_id)),
+      self.organize_results(self.get_location(service, profile_id)),
       self.organize_results(self.get_top_keywords(service, profile_id))
       ])
     

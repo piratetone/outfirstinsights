@@ -6,9 +6,16 @@
 
 <body>
 
-<div id="content">
-    <h1>Outfirst Insights</h1>
-    <p>This is the work-in-progress template to render for email</p>
+<div id="content" style='max-width: 700px;'>
+    <h1 style='font-family: sans-serif'>Outfirst Insights</h1>
+    <h3>For the week (MONTH?!?!?) of {{ date }}</h3>
+    <p style='text-align: justify;'>Outfirst Insights provides indepth analytics for your website right to your inbox.
+        Get information about how many users your site has, where your users are coming from,
+        and what they're doing.  With Outfirst Insights, you'll have the tools to expand your audience.
+    </p>
+
+    <h3>What's the difference between a session and a pageview?</h3>
+    <p>When you go on website, that's a session. If you landed on the homepage, that's one pageview for the homepage. If you click the 'About' page and then go back to the homepage, then that's two pageviews for the homepage, and one for the 'About' page.  All of this would count as one session.</p>
     <p><a href='{{ site_name }}'> {{ site_name }} </a></p>
 
     {% for table in tables -%}
@@ -17,12 +24,12 @@
         <table>
             <tr style='background: #598bf2'>
             {% for header in table.headers -%}
-            <th style='color: white; border: 1px solid white; padding: 10px; font-family: sans-serif'>{{ header }}</th>{% endfor %}
+            <th style='color: white; border: none; padding: 10px; font-family: sans-serif; line-height: 1.5'>{{ header }}</th>{% endfor %}
             </tr>
         {% for row in table.rows -%}
             <tr>
             {% for cell in row -%}
-                <td style='border: 1px solid #bbcef4;'>{{cell}}</td>
+                <td style='border: 1px solid #bbcef4; background: #d9e5ff'>{{cell}}</td>
             {% endfor %}
             </tr>
             {% endfor %}
@@ -33,6 +40,6 @@
 
 </div>
 
-<p>Want to unsubscribe?  Send us an email and we'll remove you. <a href="mailto:someone@example.com?Subject=Unsubscribe" target="_top"> FILL OUT EMAIL</a>
+<p>Want to unsubscribe?  Send us an email about cancelling your account and we'll help you out. <a href="mailto:someone@example.com?Subject=Unsubscribe" target="_top"> FILL OUT EMAIL</a>
 </body>
 </html>

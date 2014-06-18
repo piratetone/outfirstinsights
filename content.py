@@ -4,6 +4,8 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from datetime import date
+
 class ContentPresentor:
   """
   Takes the result from the AnalyticsWrapper.organize_results(), and readies 
@@ -44,6 +46,7 @@ class ContentPresentor:
     templateVars = { "title" : "Outfirst Insights",
               "site_name": site_name,
               "tables" : template_data,
+              'date' : date.today().isoformat()
            }
 
     outputText = template.render( templateVars )
