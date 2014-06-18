@@ -215,7 +215,7 @@ class AnalyticsWrapper:
 
   def new_versus_returning(self, service, profile_id):
     output = self.get_info_until_today(service, profile_id, 365, dimensions='ga:userType', metrics='ga:sessions')
-    output['description'] = 'Shows new versus returning viewers over the last 365 days.'
+    output['description'] = 'New versus returning viewers over the last 365 days.'
     return output
 
   def get_location(self, service, profile_id):
@@ -308,8 +308,6 @@ class AnalyticsWrapper:
       self.organize_results(self.get_sources(service, profile_id)),
       self.organize_results(self.get_weekly_pageviews(service, profile_id)),
       self.organize_results(self.get_yearly_pageviews(service, profile_id)),
-      self.organize_results(self.get_unique_sessions(service, profile_id)),
-      self.organize_results(self.get_sessions(service, profile_id)),
       self.organize_results(self.get_top_pages(service, profile_id)),
       self.organize_results(self.get_leads(service, profile_id)),
       self.organize_results(self.get_lead_conversion_rate(service, profile_id)),
