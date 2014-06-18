@@ -29,3 +29,4 @@ Changelog
 -Setup multiple account/site management (refactor 'get_first_profile_id')
 ->Tidy up table header names.
 ->Write email-sending logic.
+->Separate ContentPresentor into a separate file.

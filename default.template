@@ -12,17 +12,17 @@
     <p><a href='{{ site_name }}'> {{ site_name }} </a></p>
 
     {% for table in tables -%}
-    <div id='table-{{loop.index}}'>
+    <div id='table-{{loop.index}}' style='border-collapse: collapse;'>
         <p>This table is for: {{ table.description }}</p>
         <table>
-            <tr>
+            <tr style='background: #598bf2'>
             {% for header in table.headers -%}
-            <th>{{ header }}</th>{% endfor %}
+            <th style='color: white; border: 1px solid white; padding: 10px; font-family: sans-serif'>{{ header }}</th>{% endfor %}
             </tr>
         {% for row in table.rows -%}
             <tr>
             {% for cell in row -%}
-                <td>{{cell}}</td>
+                <td style='border: 1px solid #bbcef4;'>{{cell}}</td>
             {% endfor %}
             </tr>
             {% endfor %}
