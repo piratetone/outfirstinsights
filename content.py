@@ -31,6 +31,7 @@ class ContentPresentor:
     else:
       self.pretty_site_name = site_name[len('http://'):-len('.com')]
 
+
   def run(self):
     self.render_template(self.content, self.site_name)
 
@@ -51,8 +52,8 @@ class ContentPresentor:
 
     outputText = template.render( templateVars )
     self.write_to_file(outputText, self.pretty_site_name + '.html')
-    
     return outputText
+    
 
   def email(self, rendered_template):
     """This function currently doesn't work because I don't have the SMTP info.
